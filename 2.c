@@ -44,8 +44,7 @@ void* countFiles(void* arg) {
             } else if (S_ISREG(fileStat.st_mode)) {
             	
                 pthread_mutex_lock(&mutex);
-                printf("%s\n", path);
-            	printf("%d\n", fileCount);
+                printf("%s: %d\n", path, fileCount);
             	
                 fileCount++;
                 parentDirSize += fileStat.st_size;
@@ -68,7 +67,6 @@ void* countFiles(void* arg) {
                 pthread_mutex_unlock(&mutex);
             }
         }
-        printf("final: %d\n", fileCount);
     }
     
     printf("final: %d\n", fileCount);
@@ -117,6 +115,7 @@ void* first(void* arg) {
 				}
             } else if (S_ISREG(fileStat.st_mode)) {
                 pthread_mutex_lock(&mutex);
+                printf("P- %s: %d\n", path, fileCount);
                 fileCount++;
                 parentDirSize += fileStat.st_size;
     
