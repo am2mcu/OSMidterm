@@ -42,11 +42,13 @@ void* countFiles(void* arg) {
                 pthread_create(&thread, NULL, countFiles, (void*)path);  // Create a thread to count files in subdirectory
                 pthread_join(thread, NULL);  // Wait for the thread to finish
             } else if (S_ISREG(fileStat.st_mode)) {
-            	printf("%s\n", path);
-            	printf("%d\n", fileCount);
+            	
                 pthread_mutex_lock(&mutex);
+                printf("%s\n", path);
+            	printf("%d\n", fileCount);
+            	
                 fileCount++;
-                //parentDirSize += stat.st_size;
+                parentDirSize += fileStat.st_size;
     
                 if (fileStat.st_size > largestFileSize) {
                     largestFileSize = fileStat.st_size;
@@ -115,8 +117,8 @@ void* first(void* arg) {
 				}
             } else if (S_ISREG(fileStat.st_mode)) {
                 pthread_mutex_lock(&mutex);
-                //fileCount++;
-                //parentDirSize += stat.st_size;
+                fileCount++;
+                parentDirSize += fileStat.st_size;
     
                 if (fileStat.st_size > largestFileSize) {
                     largestFileSize = fileStat.st_size;

@@ -41,7 +41,7 @@ void* countFiles(void* arg) {
             } else if (S_ISREG(fileStat.st_mode)) {
                 pthread_mutex_lock(&mutex);
                 fileCount++;
-                //parentDirSize += stat.st_size;
+                parentDirSize += fileStat.st_size;
     
                 if (fileStat.st_size > largestFileSize) {
                     largestFileSize = fileStat.st_size;
