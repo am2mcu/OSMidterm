@@ -75,6 +75,26 @@ void receiveFromThreads() {
         //printf("Received from thread - Count, Size, large, small: %ld, %ld, %ld, %ld, %s, %s\n", fc, pds, lfs, sfs, lfp, sfp);
         
         fileCountP += fc;
+        parentDirSizeP += pds;
+        
+        if (lfs > largestFileSizeP) {
+            largestFileSizeP = lfs;
+            
+            if (largestFilePathP != NULL) {
+                free(largestFilePathP);
+            }
+            largestFilePathP = strdup(lfp);
+        }
+    
+        if (sfs < smallestFileSizeP) {
+            smallestFileSizeP = sfs;
+            
+            if (smallestFilePathP != NULL) {
+                free(smallestFilePathP);
+            }
+            smallestFilePathP = strdup(sfp);
+            
+        }
     }
     
     printf("Total size of files in '%s': %d\n", folderPath, parentDirSizeP);
@@ -156,7 +176,7 @@ void* countFiles(void* arg) {
     
     closedir(dir);
     
-    //printf("%s, %s\n", largestFilePath, smallestFilePath);
+    printf("%d, %d, %d, %d, %s, %s\n", fileCount, parentDirSize, largestFileSize, smallestFileSize, largestFilePath, smallestFilePath);
     sendToParent(fileCount, parentDirSize, largestFileSize, smallestFileSize, largestFilePath, smallestFilePath);
 
     pthread_exit(NULL);
@@ -208,18 +228,18 @@ void* first(void* arg) {
                 fileCountP++;
                 parentDirSizeP += fileStat.st_size;
     
-                if (fileStat.st_size > largestFileSize) {
+                if (fileStat.st_size > largestFileSizeP) {
                     largestFileSizeP = fileStat.st_size;
-                    if (largestFilePath != NULL) {
-                        free(largestFilePath);
+                    if (largestFilePathP != NULL) {
+                        free(largestFilePathP);
                     }
                     largestFilePathP = strdup(path);
                 }
     
-                if (fileStat.st_size < smallestFileSize) {
+                if (fileStat.st_size < smallestFileSizeP) {
                     smallestFileSizeP = fileStat.st_size;
-                    if (smallestFilePath != NULL) {
-                        free(smallestFilePath);
+                    if (smallestFilePathP != NULL) {
+                        free(smallestFilePathP);
                     }
                     smallestFilePathP = strdup(path);
                 }
@@ -232,7 +252,7 @@ void* first(void* arg) {
     closedir(dir);
     
 
-	printf("Total size of files in '%s': %d\n", directory, parentDirSize);
+    printf("Total size of files in '%s': %d\n", directory, parentDirSize);
     printf("Total number of files in '%s': %d\n", directory, fileCount);
     printf("Largest file: %s (Size: %lld bytes)\n", largestFilePath, largestFileSize);
     printf("Smallest file: %s (Size: %lld bytes)\n", smallestFilePath, smallestFileSize);
