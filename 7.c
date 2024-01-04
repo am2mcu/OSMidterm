@@ -20,7 +20,7 @@ off_t parentDirSize = 0;
 
 int pipe_fd[2];
 
-void sendToParent(int fc, off_t pds, off_t lfs, off_t sfs) {
+void sendToParent(off_t fc, off_t pds, off_t lfs, off_t sfs) {
     char buffer[4 * sizeof(off_t)];
     //strcpy(buffer, path);
     memcpy(buffer, &fc, sizeof(off_t));
@@ -39,11 +39,14 @@ void receiveFromThreads() {
         char path[MAX_PATH_LENGTH];
         memcpy(path, buffer, MAX_PATH_LENGTH);
 
-        int fileCount, off_t parentDirSize, off_t largestFileSize, off_t smallestFileSize;
-        memcpy(&fileCount, buffer + MAX_PATH_LENGTH, sizeof(off_t));
+        off_t fc, pds, lfs, sfs;
+        memcpy(&fc, buffer, sizeof(off_t));
+        memcpy(&pds, buffer + sizeof(off_t), sizeof(off_t));
+        memcpy(&lfs, buffer + 2 * sizeof(off_t), sizeof(off_t));
+        memcpy(&sfs, buffer + 3 * sizeof(off_t), sizeof(off_t));
 
         // Process the received data as needed
-        printf("Received from thread - Path: %s, Size: %ld\n", path, fileCount);
+        printf("Received from thread -Count, Size, large, small: %ld, %ld, %ld, %ld\n", fc, pds, lfs, sfs);
     }
 }
 
@@ -86,7 +89,7 @@ void* countFiles(void* arg) {
                 
                 
             } else if (S_ISREG(fileStat.st_mode)) {
-                //pthread_mutex_lock(&mutex);
+                pthread_mutex_lock(&mutex);
             	
                 fileCount++;
                 parentDirSize += fileStat.st_size;
@@ -108,13 +111,15 @@ void* countFiles(void* arg) {
                     }
                     smallestFilePath = strdup(path);
                 }
-                //pthread_mutex_unlock(&mutex);
+                //printf("upper: %d, %d, %d, %d\n", fileCount, parentDirSize, largestFilePath, smallestFilePath);
+                pthread_mutex_unlock(&mutex);
             }
         }
     }
     
     closedir(dir);
     
+    //printf("%d, %d, %d, %d\n", fileCount, parentDirSize, largestFilePath, smallestFilePath);
     sendToParent(fileCount, parentDirSize, largestFilePath, smallestFilePath);
 
     pthread_exit(NULL);
