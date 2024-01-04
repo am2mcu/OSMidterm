@@ -34,6 +34,7 @@ void sendToParent(off_t fc, off_t pds, off_t lfs, off_t sfs, const char* lfp, co
     
 
     write(pipe_fd[1], buffer, sizeof(buffer));
+    
 }
 
 void receiveFromThreads() {
@@ -122,7 +123,7 @@ void* countFiles(void* arg) {
                 
                 
 
-                if (fileStat.st_size >= largestFileSize) {
+                if (fileStat.st_size > largestFileSize) {
                     largestFileSize = fileStat.st_size;
                     
                     if (largestFilePath != NULL) {
@@ -199,7 +200,7 @@ void* first(void* arg) {
                 fileCount++;
                 parentDirSize += fileStat.st_size;
     
-                if (fileStat.st_size >= largestFileSize) {
+                if (fileStat.st_size > largestFileSize) {
                     largestFileSize = fileStat.st_size;
                     if (largestFilePath != NULL) {
                         free(largestFilePath);
