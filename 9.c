@@ -53,7 +53,7 @@ void receiveFromThreads() {
     //printf("Total number of files in '%s': %d\n", folderPath, fileCount);
 
     while ((bytesRead = read(pipe_fd[0], buffer, sizeof(buffer))) > 0) {
-    	
+    	//printf("!!!!!!!!!!!!%d\n", fileCountP);
     
         off_t fc, pds, lfs, sfs;
         memcpy(&fc, buffer, sizeof(off_t));
@@ -110,7 +110,7 @@ void* countFiles(void* arg) {
     const char* directory = (const char*)arg;
     //printf("directory to new thread: %s\n", directory);
     
-    
+    //printf("start@@@@@@@@@@@@@%d\n", fileCount);
    
 
     DIR* dir = opendir(directory);
@@ -138,14 +138,13 @@ void* countFiles(void* arg) {
             if (S_ISDIR(fileStat.st_mode)) {
                 pthread_t thread;
                 
-                // printf("path to new thread: %s\n", path);
+                //printf("path to new thread: %s\n", path);
                 pthread_create(&thread, NULL, countFiles, (void*)path);  // Create a thread to count files in subdirectory
                 pthread_join(thread, NULL);  // Wait for the thread to finish
                 
-                
             } else if (S_ISREG(fileStat.st_mode)) {
                 pthread_mutex_lock(&mutex);
-            	printf("got hereeeeee");
+                //printf("path to new thread: %s\n", path);
                 fileCount++;
                 parentDirSize += fileStat.st_size;
                 
@@ -173,12 +172,19 @@ void* countFiles(void* arg) {
             }
         }
     }
+    //printf("@@@@@@@@@@@@@%d\n", fileCount);
     
     closedir(dir);
     
-    printf("%d, %d, %d, %d, %s, %s\n", fileCount, parentDirSize, largestFileSize, smallestFileSize, largestFilePath, smallestFilePath);
+    //printf("%d, %d, %d, %d, %s, %s\n", fileCount, parentDirSize, largestFileSize, smallestFileSize, largestFilePath, smallestFilePath);
     sendToParent(fileCount, parentDirSize, largestFileSize, smallestFileSize, largestFilePath, smallestFilePath);
-
+    fileCount = 0;
+    largestFilePath = NULL;
+    smallestFilePath = NULL; 
+    largestFileSize = 0;
+    smallestFileSize = __INT64_MAX__; 
+    parentDirSize = 0;
+	
     pthread_exit(NULL);
 }
 
@@ -225,6 +231,7 @@ void* first(void* arg) {
 				}
             } else if (S_ISREG(fileStat.st_mode)) {
                 pthread_mutex_lock(&mutex);
+                //printf("path to new thread: %s\n", path);
                 fileCountP++;
                 parentDirSizeP += fileStat.st_size;
     
@@ -252,12 +259,12 @@ void* first(void* arg) {
     closedir(dir);
     
 
-    printf("Total size of files in '%s': %d\n", directory, parentDirSize);
-    printf("Total number of files in '%s': %d\n", directory, fileCount);
-    printf("Largest file: %s (Size: %lld bytes)\n", largestFilePath, largestFileSize);
-    printf("Smallest file: %s (Size: %lld bytes)\n", smallestFilePath, smallestFileSize);
+    //printf("Total size of files in '%s': %d\n", directory, parentDirSize);
+    //printf("Total number of files in '%s': %d\n", directory, fileCount);
+    //printf("Largest file: %s (Size: %lld bytes)\n", largestFilePath, largestFileSize);
+    //printf("Smallest file: %s (Size: %lld bytes)\n", smallestFilePath, smallestFileSize);
     
-    printf("\n");
+    //printf("\n");
     
     
 
